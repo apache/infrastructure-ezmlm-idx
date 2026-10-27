@@ -59,6 +59,7 @@ int main(void)
   int flagas = 0;
   int flagbw = 0;
   int flagdsn = 0;
+  int flagautosub = 0;
 
   unsigned int i,j;
 
@@ -73,8 +74,9 @@ int main(void)
       _exit(99);
     if (stralloc_starts(&line,"Precedence: junk"))
       _exit(99);
+    /* Postfix bounces carry it too (RFC 3834); decide after the DSN check */
     if (stralloc_starts(&line,"Auto-Submitted:"))
-      _exit(99);
+      flagautosub = 1;
     /* Mailing list signatures */
     if (stralloc_starts(&line,"Precedence: list"))
       _exit(99);
@@ -157,6 +159,8 @@ int main(void)
       }
     }
   }
+  if (flagautosub && !(flagdsn && boundary.len))
+    _exit(99);			/* autoresponder, not a delivery report */
   if (flagdsn && boundary.len) {	/* parse DSN message */
     get(&line);			/* if bad format we exit(0) via get() */
     for (;;) {
