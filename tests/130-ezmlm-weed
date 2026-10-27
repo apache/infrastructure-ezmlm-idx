@@ -20,4 +20,29 @@ EOF
 
 ${EZBIN}/ezmlm-weed < $TMP || fatal "failed to handle multipart/report"
 
+# Postfix marks its bounces Auto-Submitted (RFC 3834); they must still pass
+cat > $TMP <<EOF
+From: MAILER-DAEMON@example.com (Mail Delivery System)
+To: <$LIST-return-196-sender=example.com@$HOST>
+Subject: Undelivered Mail Returned to Sender
+Auto-Submitted: auto-replied
+Content-Type: multipart/report; report-type=delivery-status;
+        boundary="ae41b682-7129-4f9d-8548-7f837b891795"
+
+--ae41b682-7129-4f9d-8548-7f837b891795
+Content-Type: message/delivery-status
+
+Final-Recipient: rfc822; sender@example.com
+Action: failed
+Status: 5.1.1
+
+--ae41b682-7129-4f9d-8548-7f837b891795--
+EOF
+
+${EZBIN}/ezmlm-weed < $TMP || fatal "failed to accept Auto-Submitted bounce"
+
+printf 'Subject: Away\nAuto-Submitted: auto-replied\n\nOut of office\n' | \
+	${EZBIN}/ezmlm-weed >/dev/null 2>&1 && \
+	fatal "failed to reject Auto-Submitted autoresponder"
+
 echo "OK"

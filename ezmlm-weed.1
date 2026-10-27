@@ -100,6 +100,11 @@ Various autoresponders:
   Auto-Submitted:
 .EE
 
+A message with an Auto-Submitted: header that is also a
+multipart/report delivery-status notification is treated as a
+bounce, not an autoresponse. Postfix and other MTAs mark their
+bounces this way (RFC 3834).
+
 Mailing list indicators:
 
 .EX
